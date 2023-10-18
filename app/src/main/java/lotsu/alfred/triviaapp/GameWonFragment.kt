@@ -1,66 +1,76 @@
 package lotsu.alfred.triviaapp
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.findNavController
+import androidx.navigation.ui.NavigationUI
 import lotsu.alfred.triviaapp.databinding.FragmentGameWonBinding
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [GameWonFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class GameWonFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         val binding: FragmentGameWonBinding = DataBindingUtil.inflate(inflater,R.layout.fragment_game_won, container, false)
         binding.nextMatchButton.setOnClickListener {view ->
             view.findNavController().navigate(R.id.action_gameWonFragment_to_gameFragment)
         }
-        return binding.root
-    }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment GameWonFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            GameWonFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+//        Toast.makeText(context, "Correct Answers: ${args.numCorrect} Questions: ${args.numQuestions}", Toast.LENGTH_SHORT).show()
+
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.winner_menu, menu)
+                if (null == getShareIntent().resolveActivity(activity!!.packageManager)){
+                    menu.findItem(R.id.share).isVisible = false
                 }
             }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                NavigationUI.onNavDestinationSelected(menuItem, view!!.findNavController())
+                // Handle the menu selection
+                when (menuItem.itemId) {
+                    R.id.share -> shareSuccess()
+                }
+                return true
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+                return binding.root
     }
-}
+
+    private fun getShareIntent(): Intent {
+        val args = GameWonFragmentArgs.fromBundle(requireArguments())
+        val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.type = "text/plain"
+            shareIntent.putExtra(Intent.EXTRA_TEXT,
+            getString(R.string.share_success_text,args.numCorrect, args.numQuestions))
+         return shareIntent
+    }
+
+    private fun shareSuccess() {
+        startActivity(getShareIntent())
+    }
+
+
+
+ }
