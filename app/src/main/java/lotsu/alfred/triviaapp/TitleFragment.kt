@@ -8,9 +8,11 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.GravityCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
@@ -23,8 +25,12 @@ class TitleFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-         val binding: FragmentTitleBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_title, container, false)
-        binding.playButton.setOnClickListener(Navigation.createNavigateOnClickListener(R.id.action_titleFragment_to_gameFragment))
+         val binding: FragmentTitleBinding = DataBindingUtil.inflate(inflater,
+             R.layout.fragment_title, container, false)
+        binding.playButton
+            .setOnClickListener(Navigation.createNavigateOnClickListener(
+                R.id.action_titleFragment_to_gameFragment))
+
 
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
@@ -33,11 +39,17 @@ class TitleFragment : Fragment() {
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                NavigationUI.onNavDestinationSelected(menuItem, view!!.findNavController())
-                // Handle the menu selection
+                if (menuItem.itemId == R.id.aboutFragment) {
+                    NavigationUI.onNavDestinationSelected(menuItem, view!!.findNavController())
+                }else {
+                    activity?.findViewById<DrawerLayout>(R.id.drawerLayout)?.openDrawer(
+                        GravityCompat.START, true)
+                }
                 return true
             }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+        }, viewLifecycleOwner,
+            Lifecycle.State.RESUMED)
          return binding.root
     }
 }
